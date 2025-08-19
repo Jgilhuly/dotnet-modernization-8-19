@@ -1,0 +1,20 @@
+@model dynamic
+
+@{
+    var badgeClass = Model.Type switch
+    {
+        "success" => "status-badge-success",
+        "warning" => "status-badge-warning", 
+        "danger" => "status-badge-danger",
+        "info" => "status-badge-info",
+        _ => "status-badge-info"
+    };
+}
+
+<span class="status-badge @badgeClass">
+    @if (!string.IsNullOrEmpty(Model.Icon))
+    {
+        @Html.Raw(Model.Icon)
+    }
+    @Model.Text
+</span>
