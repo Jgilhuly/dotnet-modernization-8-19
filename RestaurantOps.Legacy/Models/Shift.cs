@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RestaurantOps.Legacy.Models
 {
@@ -21,6 +22,7 @@ namespace RestaurantOps.Legacy.Models
         public string Role { get; set; } = string.Empty;
 
         // Convenience
+        [NotMapped]
         public string? EmployeeName { get; set; }
     }
 } 

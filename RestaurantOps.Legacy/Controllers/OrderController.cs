@@ -1,14 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using RestaurantOps.Legacy.Data;
+using RestaurantOps.Legacy.Interfaces;
 
 namespace RestaurantOps.Legacy.Controllers
 {
     public class OrderController : Controller
     {
-        private readonly OrderRepository _orderRepo = new();
-        private readonly MenuRepository _menuRepo = new();
-        private readonly TableRepository _tableRepo = new();
+        private readonly IOrderRepository _orderRepo;
+        private readonly IMenuRepository _menuRepo;
+        private readonly ITableRepository _tableRepo;
+
+        public OrderController(IOrderRepository orderRepo, IMenuRepository menuRepo, ITableRepository tableRepo)
+        {
+            _orderRepo = orderRepo;
+            _menuRepo = menuRepo;
+            _tableRepo = tableRepo;
+        }
 
         public IActionResult Details(int id)
         {

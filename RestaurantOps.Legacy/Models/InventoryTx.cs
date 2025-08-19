@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RestaurantOps.Legacy.Models
 {
@@ -17,6 +18,7 @@ namespace RestaurantOps.Legacy.Models
         public string? Notes { get; set; }
 
         // Convenience display property
+        [NotMapped]
         public string? IngredientName { get; set; }
     }
 } 

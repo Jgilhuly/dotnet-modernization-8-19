@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RestaurantOps.Legacy.Models
 {
@@ -18,6 +19,7 @@ namespace RestaurantOps.Legacy.Models
         public bool IsAvailable { get; set; } = true;
 
         // Navigation (for view convenience only, not EF)
+        [NotMapped]
         public string? CategoryName { get; set; }
     }
 } 

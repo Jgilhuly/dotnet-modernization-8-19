@@ -1,54 +1,53 @@
+using System;
 using System.Collections.Generic;
-using System.Data;
-using Microsoft.Data.SqlClient;
+using System.Linq;
 using RestaurantOps.Legacy.Models;
+using RestaurantOps.Legacy.Interfaces;
 
 namespace RestaurantOps.Legacy.Data
 {
-    public class InventoryRepository
-    {
-        public void AdjustStock(int ingredientId, decimal quantityChange, string? notes)
-        {
-            const string insertSql = @"INSERT INTO InventoryTx (IngredientId, QuantityChange, Notes) 
-                                         VALUES (@id, @chg, @notes)";
-            const string updateSql = "UPDATE Ingredients SET QuantityOnHand = QuantityOnHand + @chg WHERE IngredientId = @id";
+	public class InventoryRepository : IInventoryRepository
+	{
+		private readonly RestaurantOpsContext _db;
 
-            var noteParam = new SqlParameter("@notes", (object?)notes ?? DBNull.Value);
+		public InventoryRepository(RestaurantOpsContext db)
+		{
+			_db = db;
+		}
 
-            // Record transaction
-            SqlHelper.ExecuteNonQuery(insertSql,
-                new SqlParameter("@id", ingredientId),
-                new SqlParameter("@chg", quantityChange),
-                noteParam);
+		public void AdjustStock(int ingredientId, decimal quantityChange, string? notes)
+		{
+			var tx = new InventoryTx
+			{
+				IngredientId = ingredientId,
+				QuantityChange = quantityChange,
+				Notes = notes,
+				TxDate = DateTime.UtcNow
+			};
+			_db.InventoryTx.Add(tx);
 
-            // Update running balance
-            SqlHelper.ExecuteNonQuery(updateSql,
-                new SqlParameter("@chg", quantityChange),
-                new SqlParameter("@id", ingredientId));
-        }
+			var ing = _db.Ingredients.First(i => i.IngredientId == ingredientId);
+			ing.QuantityOnHand += quantityChange;
 
-        public IEnumerable<InventoryTx> GetByIngredient(int ingredientId)
-        {
-            const string sql = @"SELECT tx.TxId, tx.IngredientId, tx.TxDate, tx.QuantityChange, tx.Notes,
-                                        i.Name AS IngredientName
-                                   FROM InventoryTx tx JOIN Ingredients i ON i.IngredientId = tx.IngredientId
-                                  WHERE tx.IngredientId = @id
-                                  ORDER BY tx.TxDate DESC";
-            var dt = SqlHelper.ExecuteDataTable(sql, new SqlParameter("@id", ingredientId));
-            foreach (DataRow row in dt.Rows)
-            {
-                yield return Map(row);
-            }
-        }
+			_db.SaveChanges();
+		}
 
-        private static InventoryTx Map(DataRow row) => new()
-        {
-            TxId = (int)row["TxId"],
-            IngredientId = (int)row["IngredientId"],
-            TxDate = (DateTime)row["TxDate"],
-            QuantityChange = (decimal)row["QuantityChange"],
-            Notes = row["Notes"].ToString(),
-            IngredientName = row["IngredientName"].ToString()
-        };
-    }
+		public IEnumerable<InventoryTx> GetByIngredient(int ingredientId)
+		{
+			var query = from tx in _db.InventoryTx
+						join i in _db.Ingredients on tx.IngredientId equals i.IngredientId
+						where tx.IngredientId == ingredientId
+						orderby tx.TxDate descending
+						select new InventoryTx
+						{
+							TxId = tx.TxId,
+							IngredientId = tx.IngredientId,
+							TxDate = tx.TxDate,
+							QuantityChange = tx.QuantityChange,
+							Notes = tx.Notes,
+							IngredientName = i.Name
+						};
+			return query.ToList();
+		}
+	}
 } 

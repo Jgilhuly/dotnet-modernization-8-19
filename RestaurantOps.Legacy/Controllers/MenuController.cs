@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using RestaurantOps.Legacy.Data;
+using RestaurantOps.Legacy.Interfaces;
 using RestaurantOps.Legacy.Models;
 
 namespace RestaurantOps.Legacy.Controllers
 {
     public class MenuController : Controller
     {
-        private readonly MenuRepository _repo = new(); // legacy: direct instantiation
+        private readonly IMenuRepository _repo;
+
+        public MenuController(IMenuRepository repo)
+        {
+            _repo = repo;
+        }
 
         public IActionResult Index()
         {

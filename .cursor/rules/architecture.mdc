@@ -1,0 +1,129 @@
+# RestaurantOps .NET Modernization - Architecture Rules
+
+## Project Overview
+This is a .NET 9.0 restaurant operations application being modernized from legacy ADO.NET to Entity Framework Core with proper architectural patterns.
+
+## Core Architecture Principles
+
+### 1. Dependency Injection & Interface Segregation
+- **ALWAYS** use interfaces for repositories and services
+- **NEVER** instantiate concrete repository classes directly in controllers
+- Use constructor injection for all dependencies
+- Register all services in `Program.cs` with appropriate lifetimes
+
+### 2. Repository Pattern
+- All data access goes through repository interfaces
+- Repository implementations should be thin wrappers around EF Core
+- Use `IOrderRepository`, `IMenuRepository`, `ITableRepository`, etc.
+- Repositories should implement their corresponding interfaces
+
+### 3. Service Layer Architecture
+- Business logic belongs in service classes, not controllers
+- Services implement `IService` marker interface
+- Controllers should only handle HTTP concerns and delegate to services
+- Use `IOrderService`, `IMenuService`, `ITableService`, etc.
+
+### 4. Unit of Work Pattern
+- Use `IUnitOfWork` for transaction management across multiple repositories
+- Provides centralized access to all repositories
+- Supports both sync and async operations
+
+## File Structure & Naming Conventions
+
+### Interfaces Directory
+- Location: `RestaurantOps.Legacy/Interfaces/`
+- Naming: `I{Entity}Repository.cs`, `I{Entity}Service.cs`
+- Examples: `IOrderRepository.cs`, `IMenuService.cs`
+
+### Services Directory
+- Location: `RestaurantOps.Legacy/Services/`
+- For future business logic implementations
+- Naming: `{Entity}Service.cs`
+
+### Data Directory
+- Location: `RestaurantOps.Legacy/Data/`
+- Contains EF Core DbContext and repository implementations
+- Naming: `{Entity}Repository.cs`
+
+## Code Examples
+
+### Controller Constructor Injection
+```csharp
+public class OrderController : Controller
+{
+    private readonly IOrderRepository _orderRepo;
+    private readonly IMenuRepository _menuRepo;
+
+    public OrderController(IOrderRepository orderRepo, IMenuRepository menuRepo)
+    {
+        _orderRepo = orderRepo;
+        _menuRepo = menuRepo;
+    }
+}
+```
+
+### Repository Interface
+```csharp
+public interface IOrderRepository
+{
+    Order Create(int tableId);
+    Order? GetById(int orderId);
+    void AddLine(int orderId, int menuItemId, int quantity, decimal price);
+    // ... other methods
+}
+```
+
+### Service Registration in Program.cs
+```csharp
+// Repository registrations
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+
+// Future service registrations
+builder.Services.AddScoped<IOrderService, OrderService>();
+```
+
+## Migration Guidelines
+
+### From ADO.NET to EF Core
+- Replace raw SQL with LINQ queries
+- Use `RestaurantOpsContext` instead of `SqlHelper`
+- Remove `System.Data` and `Microsoft.Data.SqlClient` dependencies
+- Replace manual mapping with EF Core entity navigation
+
+### Maintaining Interface Contracts
+- When updating repository implementations, ensure interface contracts remain unchanged
+- Controllers should not need modification when switching from ADO.NET to EF Core
+- All public methods in interfaces must be implemented
+
+## Testing & Quality
+
+### Unit Testing
+- All interfaces enable easy mocking for unit tests
+- Controllers can be tested with mocked repository dependencies
+- Services can be tested with mocked repository dependencies
+
+### Build Verification
+- Always run `dotnet build` after architectural changes
+- Ensure no compilation errors
+- Verify dependency injection container configuration
+
+## Common Anti-Patterns to Avoid
+
+❌ **DON'T** instantiate repositories directly:
+```csharp
+private readonly OrderRepository _repo = new(); // WRONG
+```
+
+✅ **DO** use constructor injection:
+```csharp
+private readonly IOrderRepository _repo; // RIGHT
+public OrderController(IOrderRepository repo) { _repo = repo; }
+```
+
+❌ **DON'T** put business logic in controllers
+❌ **DON'T** use concrete types in dependency injection
+❌ **DON'T** mix ADO.NET and EF Core in the same repository
+
+
+Whenever you modify anything about the project architecture, make sure to update ./cursor/docs/architecture-diagram.

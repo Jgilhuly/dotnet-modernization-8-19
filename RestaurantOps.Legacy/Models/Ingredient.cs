@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RestaurantOps.Legacy.Models
 {
@@ -21,6 +22,7 @@ namespace RestaurantOps.Legacy.Models
         public decimal ReorderThreshold { get; set; }
 
         // Convenience property
+        [NotMapped]
         public bool NeedsReorder => QuantityOnHand <= ReorderThreshold;
     }
 } 

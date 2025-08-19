@@ -5,9 +5,12 @@ namespace RestaurantOps.Legacy.Models
         public int OrderLineId { get; set; }
         public int OrderId { get; set; }
         public int MenuItemId { get; set; }
+        // Convenience for views
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string MenuItemName { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal PriceEach { get; set; }
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public decimal LineTotal => Quantity * PriceEach;
     }
 } 
