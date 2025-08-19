@@ -1,0 +1,17 @@
+@model dynamic
+
+<a href="@Model.Url" class="block group">
+    <div class="dashboard-card group-hover:border-primary">
+        <div class="mb-4">
+            @Html.Raw(Model.Icon)
+        </div>
+        <h3 class="text-lg font-semibold text-primary mb-2">@Model.Title</h3>
+        <p class="text-gray-600 text-sm mb-4">@Model.Description</p>
+        <span class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg shadow-sm text-white @Model.ButtonClass transition-all duration-200">
+            @Model.ButtonText
+            <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </span>
+    </div>
+</a>
