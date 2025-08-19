@@ -31,6 +31,9 @@ ScaffoldingReadMe.txt
 .nuget/
 packages/
 
+# Environment files
+.env
+
 # Test results
 TestResults/
 *.trx
